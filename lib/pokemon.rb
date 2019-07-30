@@ -1,10 +1,11 @@
 class Pokemon
-    attr_accessor :id, :name, :type, :db
+    attr_accessor :id, :name, :type, :hp, :db
 
     def initialize(id:, name:, type:, db:)
         @id = id
         @name = name
         @type = type
+        @hp = 60
         @db = db
     end
 
@@ -26,17 +27,32 @@ class Pokemon
             LIMIT 1
         SQL
 
-        result = db.execute(sql, id)
-        Pokemon.create_from_db(result)
+        result = db.execute(sql, id)[0]
+        new_pokemon = Pokemon.create_from_db(result)
     end
 
     def self.create_from_db(array)
-        pokemon = Pokemon.new
-        pokemon.id = array[0]
-        pokemon.name = array[1]
-        pokemon.type = array[2]
+        # binding.pry
+        new_pokemon_hash = {}
+        new_pokemon_hash[:id] = array[0]
+        new_pokemon_hash[:name] = array[1]
+        new_pokemon_hash[:type] = array[2]
+        new_pokemon_hash[:db] = @db
+        pokemon = Pokemon.new(new_pokemon_hash)
+        pokemon.hp = array[3]
+        pokemon
     end
 
+    def alter_hp(hp, db)
+        @hp = hp
+        
+        sql = <<-SQL
+            UPDATE pokemon SET hp = ? WHERE id = ?
+        SQL
+
+        db.execute(sql, @hp, @id)
+        binding.pry
+    end
 
 
 
